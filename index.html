@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>01000010 01110010 01101111 01101101 01100001</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+            animation: backgroundOscillation 3s infinite alternate;
+        }
+
+        /* Oscilación de la luz de fondo */
+        @keyframes backgroundOscillation {
+            0% { background-color: black; }
+            100% { background-color: #111; }
+        }
+
+        #videoContainer {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform: scale(0);
+            transition: transform 1.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            filter: blur(5px);
+            transition: filter 1s ease-in-out;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: overlayBlink 2s infinite alternate;
+        }
+
+        /* Efecto de parpadeo en el overlay */
+        @keyframes overlayBlink {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        #overlay .message {
+            font-size: 24px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            animation: messageFade 1s ease-in-out forwards;
+        }
+
+        /* Fade-in para el mensaje */
+        @keyframes messageFade {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .button {
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: #f39c12;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .button:hover {
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Pulsación del botón */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        #timer {
+            font-size: 36px;
+            font-weight: bold;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #f39c12;
+            display: none;
+            text-shadow: 0 0 20px #ff0000;
+            animation: timerPulse 2s infinite alternate;
+        }
+
+        /* Efecto de pulsación para el temporizador */
+        @keyframes timerPulse {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        #countdown {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            animation: countdownBlink 1.5s infinite alternate;
+        }
+
+        /* Parpadeo en el contador */
+        @keyframes countdownBlink {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        #ipDisplay {
+            font-size: 24px;
+            color: #f39c12;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 20px;
+            display: none;
+            text-shadow: 0 0 20px #ff0000;
+        }
+
+        /* Audio misterioso en bucle */
+        audio {
+            filter: sepia(50%) contrast(150%) brightness(70%) saturate(150%);
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <button class="button" id="activateButton">Toca para recapacitar</button>
+    </div>
+
+    <div id="videoContainer">
+        <video id="bromaVideo" autoplay loop muted>
+            <source src="palabraMagica.mp4" type="video/mp4">
+            Tu navegador no soporta videos HTML5.
+        </video>
+        <div id="timer">
+            <div class="label">ÉL VENDRÁ</div>
+            <div id="countdown"></div>
+        </div>
+    </div>
+
+    <div id="ipDisplay">Cargando IP...</div>
+
+    <audio id="backgroundAudio" loop>
+        <source src="elVendra.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <script>
+        const video = document.getElementById('bromaVideo');
+        const videoContainer = document.getElementById('videoContainer');
+        const overlay = document.getElementById('overlay');
+        const button = document.getElementById('activateButton');
+        const timerDisplay = document.getElementById('timer');
+        const countdownDisplay = document.getElementById('countdown');
+        const backgroundAudio = document.getElementById('backgroundAudio');
+        const ipDisplay = document.getElementById('ipDisplay');
+
+        // Función para obtener la IP pública
+        const fetchPublicIP = async () => {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                ipDisplay.textContent = `${data.ip}`;
+                ipDisplay.style.display = 'block'; // Muestra la IP después de obtenerla
+            } catch (error) {
+                ipDisplay.textContent = 'No se pudo obtener la IP';
+                ipDisplay.style.display = 'block'; // Muestra el mensaje de error
+            }
+        };
+
+        // Función para activar el sonido y mostrar el video
+        const activateSoundAndShowVideo = () => {
+            video.muted = false; // Activa el sonido del video
+            video.play().catch((error) => {
+                console.log('Error de reproducción:', error);
+            });
+
+            // Activa el audio misterioso y lo reproduce en bucle
+            backgroundAudio.play().catch((error) => {
+                console.log('Error de reproducción de audio:', error);
+            });
+
+            // Se quita el filtro de desenfoque del video
+            video.style.filter = 'blur(0)';
+
+            // Muestra el video con animación de entrada
+            videoContainer.style.display = 'block';
+            videoContainer.style.transform = 'scale(1)'; // Escala el video
+
+            // Después de un segundo, vuelve el video a su tamaño original
+            setTimeout(() => {
+                videoContainer.style.transform = 'scale(1)';
+                videoContainer.style.opacity = 1;
+            }, 1000);
+
+            overlay.style.display = 'none';
+
+            // Muestra el temporizador
+            timerDisplay.style.display = 'block';
+            // Iniciar el temporizador
+            startTimer();
+
+            // Obtener la IP pública después de presionar el botón
+            fetchPublicIP();
+        };
+
+        // Función para calcular el tiempo restante hasta las 3:33 AM
+        const startTimer = () => {
+            const targetTime = new Date();
+            targetTime.setHours(3, 33, 0, 0); // Establece las 3:33 AM del día actual
+
+            // Si ya pasó las 3:33 AM, establecemos el objetivo para el día siguiente
+            if (targetTime < new Date()) {
+                targetTime.setDate(targetTime.getDate() + 1);
+            }
+
+            // Función que actualiza el temporizador cada segundo
+            const updateTimer = () => {
+                const now = new Date();
+                const timeDifference = targetTime - now;
+
+                if (timeDifference <= 0) {
+                    countdownDisplay.textContent = "¡Es la hora!";
+                    clearInterval(timerInterval);
+                } else {
+                    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+                    countdownDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+                }
+            };
+
+            // Actualizar el temporizador cada segundo
+            const timerInterval = setInterval(updateTimer, 1000);
+            updateTimer(); // Llamada inicial para mostrar el tiempo de inmediato
+        };
+
+        // Acción al presionar el botón
+        button.addEventListener('click', activateSoundAndShowVideo);
+    </script>
+</body>
+</html>
